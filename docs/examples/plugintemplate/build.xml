@@ -100,7 +100,7 @@
         <pathelement location="build/build.test" />
       </classpath>
 
-      <arg value="-p" />
+      <arg value="-R" />
       <arg value="build/build.test" />
 
       <arg value="-o" />
