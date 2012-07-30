@@ -1,0 +1,4 @@
+<plugin>
+  <name>sle</name>
+  <classname>scala.tools.sle.ScalaLEPlugin</classname>
+</plugin>

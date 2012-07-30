@@ -1208,7 +1208,10 @@ QUICK BUILD (QUICK)
 
   <target name="quick.pre-plugins" depends="quick.comp">
     <uptodate property="quick.plugins.available" targetfile="${build-quick.dir}/plugins.complete">
-      <srcfiles dir="${src.dir}/continuations"/>
+      <srcfiles dir="${src.dir}">
+        <include name="continuations/**"/>
+        <include name="sle/**"/>
+      </srcfiles>
     </uptodate>
   </target>
 
@@ -1253,6 +1256,34 @@ QUICK BUILD (QUICK)
       <compilerarg file="${build-quick.dir}/misc/scala-devel/plugins"/>
     </scalacfork>
     <touch file="${build-quick.dir}/plugins.complete" verbose="no"/>
+    <!-- build sle plugin -->
+    <mkdir dir="${build-quick.dir}/classes/sle-plugin"/>
+    <scalacfork
+      destdir="${build-quick.dir}/classes/sle-plugin"
+      compilerpathref="quick.classpath"
+      params="${scalac.args.quick}"
+      srcdir="${src.dir}/sle/plugin"
+      jvmargs="${scalacfork.jvmargs}">
+      <include name="**/*.scala"/>
+      <compilationpath>
+        <pathelement location="${build-quick.dir}/classes/library"/>
+        <pathelement location="${build-quick.dir}/classes/reflect"/>
+        <pathelement location="${build-quick.dir}/classes/compiler"/>
+        <pathelement location="${build-quick.dir}/classes/sle-plugin"/>
+        <path refid="forkjoin.classpath"/>
+        <path refid="fjbg.classpath"/>
+        <path refid="aux.libs"/>
+      </compilationpath>
+    </scalacfork>
+    <copy
+       file="${src.dir}/sle/plugin/scalac-plugin.xml"
+       todir="${build-quick.dir}/classes/sle-plugin"/>
+    <mkdir dir="${build-quick.dir}/misc/scala-devel/plugins"/>
+    <jar destfile="${build-quick.dir}/misc/scala-devel/plugins/sle.jar">
+      <fileset dir="${build-quick.dir}/classes/sle-plugin"/>
+    </jar>
+    <touch file="${build-quick.dir}/plugins.complete" verbose="no"/>
+    <!-- done building sle plugin -->
     <stopwatch name="quick.plugins.timer" action="total"/>
   </target>
 
@@ -1551,12 +1582,19 @@ PACKED QUICK BUILD (PACK)
       property="pack.plugins.available"
       targetfile="${build-pack.dir}/misc/scala-devel/plugins/continuations.jar"
       srcfile="${build-quick.dir}/plugins.complete"/>
+    <uptodate
+      property="pack.plugins.available"
+      targetfile="${build-pack.dir}/misc/scala-devel/plugins/sle.jar"
+      srcfile="${build-quick.dir}/plugins.complete"/>
   </target>
 
   <target name="pack.plugins" depends="pack.pre-plugins" unless="pack.plugins.available">
     <mkdir dir="${build-pack.dir}/misc/scala-devel/plugins"/>
     <jar destfile="${build-pack.dir}/misc/scala-devel/plugins/continuations.jar">
       <fileset dir="${build-quick.dir}/classes/continuations-plugin"/>
+    </jar>
+    <jar destfile="${build-pack.dir}/misc/scala-devel/plugins/sle.jar">
+      <fileset dir="${build-quick.dir}/classes/sle-plugin"/>
     </jar>
   </target>
 
@@ -1889,7 +1927,10 @@ BOOTSTRAPPING BUILD (STRAP)
 
   <target name="strap.pre-plugins" depends="strap.comp">
     <uptodate property="strap.plugins.available" targetfile="${build-strap.dir}/plugins.complete">
-      <srcfiles dir="${src.dir}/continuations"/>
+      <srcfiles dir="${src.dir}">
+	<include name="/continuations/**"/>
+	<include name="/sle/**/"/>
+      </srcfiles>
     </uptodate>
   </target>
 
@@ -1934,6 +1975,33 @@ BOOTSTRAPPING BUILD (STRAP)
       <compilerarg file="${build-strap.dir}/misc/scala-devel/plugins"/>
     </scalacfork>
     <touch file="${build-strap.dir}/plugins.complete" verbose="no"/>
+    <!-- build sle plugin -->
+    <mkdir dir="${build-strap.dir}/classes/sle-plugin"/>
+    <scalacfork
+      destdir="${build-strap.dir}/classes/sle-plugin"
+      compilerpathref="pack.classpath"
+      params="${scalac.args.quick}"
+      srcdir="${src.dir}/sle/plugin"
+      jvmargs="${scalacfork.jvmargs}">
+      <include name="**/*.scala"/>
+      <compilationpath>
+        <pathelement location="${build-strap.dir}/classes/library"/>
+        <pathelement location="${build-strap.dir}/classes/reflect"/>
+        <pathelement location="${build-strap.dir}/classes/compiler"/>
+        <pathelement location="${build-strap.dir}/classes/sle-plugin"/>
+        <path refid="forkjoin.classpath"/>
+        <path refid="fjbg.classpath"/>
+        <path refid="aux.libs"/>
+      </compilationpath>
+    </scalacfork>
+    <copy
+       file="${src.dir}/sle/plugin/scalac-plugin.xml"
+       todir="${build-strap.dir}/classes/sle-plugin"/>
+    <mkdir dir="${build-strap.dir}/misc/scala-devel/plugins"/>
+    <jar destfile="${build-strap.dir}/misc/scala-devel/plugins/sle.jar">
+      <fileset dir="${build-strap.dir}/classes/sle-plugin"/>
+    </jar>
+    <!-- done building sle plugin -->
     <stopwatch name="strap.plugins.timer" action="total"/>
   </target>
 
@@ -2430,6 +2498,23 @@ BOOTRAPING TEST AND TEST SUITE
     </partest>
   </target>
 
+  <target name="test.sle.suite" depends="pack.done">
+    <property name="partest.srcdir" value="files" />
+    <partest showlog="yes" erroronfailed="yes" javacmd="${java.home}/bin/java"
+             timeout="2400000"
+             srcdir="${partest.srcdir}"
+             scalacopts="${scalac.args.optimise} -Xplugin-require:sle">
+      <compilerarg value="-Xpluginsdir"/>
+      <compilerarg file="${build-quick.dir}/misc/scala-devel/plugins"/>
+      <compilationpath>
+        <path refid="pack.classpath"/>
+        <fileset dir="${partest.dir}/files/lib" includes="*.jar" />
+      </compilationpath>
+      <negtests  dir="${partest.dir}/${partest.srcdir}/sle-neg" includes="*.scala"/>
+      <runtests  dir="${partest.dir}/${partest.srcdir}/sle-run" includes="*.scala"/>
+    </partest>
+  </target>
+
   <target name="test.scaladoc" depends="pack.done">
     <partest erroronfailed="yes" scalacopts="${scalac.args.optimise}" showlog="yes">
       <compilationpath>
@@ -2441,7 +2526,7 @@ BOOTRAPING TEST AND TEST SUITE
     </partest>
   </target>
 
-  <target name="test.done" depends="test.suite, test.continuations.suite, test.scaladoc, test.stability"/>
+  <target name="test.done" depends="test.suite, test.continuations.suite, test.sle.suite, test.scaladoc, test.stability"/>
 
 <!-- ===========================================================================
 DISTRIBUTION
