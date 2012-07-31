@@ -45,8 +45,5 @@ object ScalaLEPlugin {
    *  @todo: Adapt to specific implementation.
    */
   def components(global: Global) =
-    List(new ScalaLEComponent(global),
-         new ScalaLETraverseComponent(global),
-         new ScalaLETransformComponent(global),
-         new ScalaLEInfoTransformComponent(global))
+    List(new ResolveNames(global))
 }

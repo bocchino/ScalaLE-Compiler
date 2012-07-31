@@ -2500,10 +2500,11 @@ BOOTRAPING TEST AND TEST SUITE
 
   <target name="test.sle.suite" depends="pack.done">
     <property name="partest.srcdir" value="files" />
+    <property environment="env"/>
     <partest showlog="yes" erroronfailed="yes" javacmd="${java.home}/bin/java"
              timeout="2400000"
              srcdir="${partest.srcdir}"
-             scalacopts="${scalac.args.optimise} -Xplugin-require:sle">
+             scalacopts="${scalac.args.optimise} -Xplugin-require:sle -cp ${env.SCALA_LE}/Implementation/Runtime/classes">
       <compilerarg value="-Xpluginsdir"/>
       <compilerarg file="${build-quick.dir}/misc/scala-devel/plugins"/>
       <compilationpath>
