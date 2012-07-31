@@ -13,7 +13,7 @@ class ResolveNames (val global: Global) extends PluginComponent {
   /** The phase name of the compiler plugin
    *  @todo Adapt to specific plugin.
    */
-  val phaseName = "resolve names"
+  val phaseName = "slec: resolve names"
 
   def newPhase(prev: Phase): Phase = new TraverserPhase(prev)
   class TraverserPhase(prev: Phase) extends StdPhase(prev) {
@@ -26,7 +26,9 @@ class ResolveNames (val global: Global) extends PluginComponent {
 
   def check(tree: Tree): Unit = tree match {
     case Apply(fun, args) =>
-      println("traversing application of "+ fun)
+      println("traversing application of " + fun)
+    case ClassDef(mods, name, tparams, impl) =>
+      println("traversing class def " + name)
     case _ => ()
   }
 }
