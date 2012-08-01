@@ -13,7 +13,7 @@ class ResolveNames (val global: Global) extends PluginComponent {
   /** The phase name of the compiler plugin
    *  @todo Adapt to specific plugin.
    */
-  val phaseName = "slec: resolve names"
+  val phaseName = "slecResolveNames"
 
   def newPhase(prev: Phase): Phase = new TraverserPhase(prev)
   class TraverserPhase(prev: Phase) extends StdPhase(prev) {
